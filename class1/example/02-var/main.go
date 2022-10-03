@@ -17,7 +17,7 @@ func main() {
 
 	f := float32(e)
 
-	g := a + "foo"
+	g := a + "apple"
 	fmt.Println(a, b, c, d, e, f) // initial 1 2 true 0 0
 	fmt.Println(g)                // initialapple
 
