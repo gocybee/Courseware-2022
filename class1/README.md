@@ -526,7 +526,7 @@ STAY
 
 
 
-作业完成后将GitHub地址在 **HappyOJ** 提交，
+作业完成后把GitHub地址提交到 **HappyOJ APP** 上，
 
 （如果是苹果手机请提交到邮箱 gocybee@gocybee.team，题目格式：第一次作业-20xxxxxx-袁神-lv3）
 
