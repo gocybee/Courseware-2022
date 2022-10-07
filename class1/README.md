@@ -354,6 +354,7 @@ func main() {
 	maxNum := 100
 	// 使用一直在不断变化的时间作为我们的种子
 	rand.Seed(time.Now().UnixNano())
+	// 设置种子之后产生一个最大为100的整形
 	secretNumber := rand.Intn(maxNum)
 	fmt.Println("The secret number is ", secretNumber)
 }
@@ -380,7 +381,9 @@ func main() {
 
 	fmt.Println("Please input your guess")
 	var guess int
+	// 输入我们猜的数字
 	_, err := fmt.Scanf("%d", &guess)
+	// Go语言中处理错误的方法
 	if err != nil {
 		fmt.Println("Invalid input. Please enter an integer value")
 		return
@@ -416,6 +419,7 @@ func main() {
 		return
 	}
 	fmt.Println("You guess is", guess)
+	// 通过 if-else 来看你是否猜对，若没猜对告诉你猜大了还是猜小了
 	if guess > secretNumber {
 		fmt.Println("Your guess is bigger than the secret number. Please try again")
 	} else if guess < secretNumber {
@@ -443,9 +447,11 @@ func main() {
 	maxNum := 100
 	rand.Seed(time.Now().UnixNano())
 	secretNumber := rand.Intn(maxNum)
+	// 作弊模式
 	// fmt.Println("The secret number is ", secretNumber)
 
 	fmt.Println("Please input your guess")
+	// 通过一个 for 循环实现一直猜数，直到猜中
 	for {
 		var guess int
 		_, err := fmt.Scanf("%d", &guess)
@@ -523,7 +529,6 @@ STAY
 ### LV3 
 按照自己的想法将猜数游戏升级到v6并说明你的升级内容
 >可以是任何的升级，请发挥你们的想象力。如果可以甚至可以将你的猜数游戏部署到网页上(如果真的部署起了，第一个人奖励一杯奶茶哦)
-
 
 
 作业完成后把GitHub地址提交到 **HappyOJ APP** 上，
