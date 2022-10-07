@@ -531,7 +531,7 @@ STAY
 >可以是任何的升级，请发挥你们的想象力。如果可以甚至可以将你的猜数游戏部署到网页上(如果真的部署起了，第一个人奖励一杯奶茶哦)
 
 
-作业完成后把GitHub地址提交到 **HappyOJ APP** 上，
+作业完成后把GitHub地址提交到 **HappyOJ APP** 上，若使用上有问题可询问各个学长。无法使用则将地址发送至 gocybee@gocybee.team
 
 （如果是苹果手机请提交到邮箱 gocybee@gocybee.team，题目格式：第一次作业-20xxxxxx-袁神-lv3）
 
