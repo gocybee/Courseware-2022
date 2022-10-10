@@ -1,4 +1,5 @@
-#### 代码地址：
+# MySQL+Gorm
+#### 代码地址：https://github.com/gocybee/Courseware-2022/tree/main/class6
 # 1. MySQL简介
 MySQL的使用场景非常广，学习MySQL的相关命令就**需要在本机安装MySQL**（主要是方便）。
 ~~这个需要大家自己在网站上搜相关的安装方法（**一定要学会自己解决问题**），然后看官方文档或者博客~~。
