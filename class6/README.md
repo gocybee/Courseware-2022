@@ -41,15 +41,14 @@ hh:mm:ss | 混合日期值和时间值和时间戳 |
 | LONGBLOB | 0-4294967295 | 二进制形式的极大文本数据 |
 | LONGTEXT | 0-4294967295 | 极大文本数据 |
 
-### 1.1.3 注意 
-
-         - **CHAR(n)和VARCHAR(n)**中的**n**代表的是**字节个数**。
-         - **CHAR**和**VARCHAR**类似，但是储存和检索过程中**不作大小写转换**。
-         - **CHAR**申明时**会向右填充空格**。
-         - **VARCHAR**只是声明最长内容的大小，与实质内容无关。
+### 1.1.3 注意
+>**CHAR(n)和VARCHAR(n)**中的**n**代表的是**字节个数**。  
+>**CHAR**和**VARCHAR**类似，但是储存和检索过程中**不作大小写转换**。  
+>**CHAR**申明时**会向右填充空格**。   
+>**VARCHAR**只是声明最长内容的大小，与实质内容无关。  
 ## 1.2 MyQSL的基本使用
 当然，操作数据库之前是能进入数据库，~~安装数据库的时候应该就会了叭。~~
-```plsql
+```sql
 -- 1. 显示数据库信息列表
 show databases;
 
@@ -149,7 +148,7 @@ commit; # 提交事务
 产生原因：每一个锁只能保护**一行的内容不被修改**，但是**不能保证**整个数据库的其他行（或者数据库本身）不被操作。~~（如果直接给数据库的链接也就是DB加锁的话，会更慢）~~
 # 2 GO环境下的使用
 ~~首先是要干嘛呢，当然时下载第三方库的驱动啊。~~
-```go
+```
 // golang的终端输入
 
 go get github.com/go-sql-driver/mysql 
@@ -249,7 +248,7 @@ func transaction(){
 这里我们主要将的是gorm与mysql的联动，当然gorm也支持很多其他种类的数据库。
 **首先一样是安装驱动**
 
-```go
+```
 go get -u gorm.io/gorm
 go get -u gorm.io/driver/sqlite
 ```
@@ -284,7 +283,7 @@ result := db.Create(&user) // 通过数据的指针来创建
 ```
 			当然也支持创建多条信息（传递一个`slice`给`Create`函数），分批创建（`CreateInBatches()`）
 ### 3.2.2 创建钩子
-Gorm允许用户自定义的钩子有`BeforeSave``BeforeCreate``AfterSave``AfterCreate`四种(其实是函数名)
+Gorm允许用户自定义的钩子有`BeforeSave` `BeforeCreate` `AfterSave` `AfterCreate` 四种(其实是函数名)
 ```go
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
   u.UUID = uuid.New()
