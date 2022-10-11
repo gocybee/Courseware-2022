@@ -249,8 +249,8 @@ func transaction(){
 **首先一样是安装驱动**
 
 ```
-go get -u gorm.io/gorm
-go get -u gorm.io/driver/sqlite
+go get -u github.com/jinzhu/gorm
+go get -u github.com/go-sql-driver/mysql
 ```
 ## 3.1 链接数据库
 首先需要向框架提供数据库的相关信息：
@@ -498,11 +498,9 @@ func writChatWhiteList(uid []string) error {
 ### Level 1
 >使用**mysql的原生语句**创建一个数据库和名为user的表格(元素数量不少于3，并且包含主键)，提交截图包括**所有相关的原生语句**和**表格的描述(desc)**。
 ### Level 2
->使用**gorm框架**，链接level1中的数据库并对**user表**中的数据进行操作，实现**判断表格存在**，**创建表格**和**增删改查**的功能，并提交源码。
+>使用**gorm框架**，链接level1中的数据库并对**user表**中的数据进行操作，实现**判断表格存在**、**创建表格**，并在main函数中使用**增删改查**的函数，并提交源码。
 ### Level 3
->在level2中的代码加上**事务处理**的代码段(函数)  
-or  
-写一个银行转账的系统，基本功能就是转账呗**(事务处理)**，其他的可以自己加。
+>基于Gorm写一个银行转账的系统，基本功能就是转账呗**(事务处理)**，其他的可以自己加。
 
 ### Extra(不用提交)
 >最后一段示例代码其实有一个问题，试着找一下[**doge**]，一定要会**读代码**哦。  
