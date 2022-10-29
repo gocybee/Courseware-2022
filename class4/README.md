@@ -1754,3 +1754,7 @@ path/filepath,math,flag,bytes,errors,log
 - 可以设定提醒的内容
 - 可以设定多个提醒的日程
 - 可以设定重复日程（每天的多久提醒一次，每周的多久提醒一次）
+
+示例：
+
+![image-20221029141236977](https://typora.stellaris.wang/image-20221029141236977.png)
