@@ -51,7 +51,7 @@ go mod init gin-demo
 
 ```
 ├── README.md
-├── apis
+├── api
 ├── dao
 ├── go.mod
 ├── model
@@ -61,7 +61,7 @@ go mod init gin-demo
 在这里简单解释一下每一层的含义
 
 - README.md：项目的说明文档，大家可以提前学习如何写出一个优秀的说明文档（当然在这个项目中的 README 是你们的课件）。
-- apis：接口层，在里面是详细的逻辑实现以及路由。
+- api：接口层，在里面是详细的逻辑实现以及路由。
 - dao：全名为 data access object，说人话就是操作数据库的。
 - model：模型层，主要放数据库实例的结构体。
 - utils：一些常用的工具函数，封装在这里减少代码的重复使用。
@@ -322,6 +322,8 @@ JWT： 将 Token 和 Payload 加密后存储于客户端，服务端只需要使
 
 在 model 文件夹下我们创建一个 `user.go` 文件，内容如下
 
+`model/user.go`
+
 ```go
 package model
 
@@ -345,8 +347,691 @@ type User struct {
 
 所以我们可以直接写出我们的代码
 
+`dao/user.go`
+
 ```go
+package dao
+
+// 假数据库，用 map 实现
+var database = map[string]string{
+	"yxh": "123456",
+	"wx":  "654321",
+}
+
+func AddUser(username, password string) {
+	database[username] = password
+}
+
+// 若没有这个用户返回 false，反之返回 true
+func SelectUser(username string) bool {
+	if database[username] == "" {
+		return false
+	}
+	return true
+}
+
+func SelectPasswordFromUsername(username string) string {
+	return database[username]
+}
 ```
 
+##### 编写 apis
 
+到现在我们就需要开始写我们的逻辑了，写之前我们先思考一下大概需要些什么逻辑。
 
+登录：
+
+1. 传入用户名。
+2. 验证是否有该用户，没有则直接退出。
+3. 验证密码是否正确。
+4. 正确则返回我们的 token 或者是 Set Cookie。
+
+注册：
+
+1. 传入用户名和密码
+2. 验证用户名是否重复，若重复也直接退出。
+3. 注册成功。
+
+大概的逻辑清楚后我们就可以来实现我们的代码了。
+
+`apis/user.go`
+
+```go
+package api
+
+import (
+	"gin-demo/dao"
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
+func register(c *gin.Context) {
+	// 传入用户名和密码
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// 验证用户名是否重复
+	flag := dao.SelectUser(username)
+	// 重复则退出
+	if flag {
+		// 以 JSON 格式返回信息
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "user already exists",
+		})
+		return
+	}
+
+	dao.AddUser(username, password)
+	// 以 JSON 格式返回信息
+	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": "add user successful",
+	})
+}
+
+func login(c *gin.Context) {
+	// 传入用户名和密码
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// 验证用户名是否存在
+	flag := dao.SelectUser(username)
+	// 不存在则退出
+	if !flag {
+		// 以 JSON 格式返回信息
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "user doesn't exists",
+		})
+		return
+	}
+
+	// 查找正确的密码
+	selectPassword := dao.SelectPasswordFromUsername(username)
+	// 若不正确则传出错误
+	if selectPassword != password {
+		// 以 JSON 格式返回信息
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "wrong password",
+		})
+		return
+	}
+
+	// 正确则登录成功 设置 cookie
+	c.SetCookie("gin_demo_cookie", "test", 3600, "/", "localhost", false, true)
+  c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": "login successful",
+	})
+}
+```
+
+到目前为止，我们大部分的任务都完成了。接下来我们要定义路由组
+
+`api/router.go`
+
+```go
+package api
+
+import "github.com/gin-gonic/gin"
+
+func InitRouter() {
+	r := gin.Default()
+
+	r.POST("/register", register) // 注册
+	r.POST("/login", login)       // 登录
+
+	r.Run(":8088") // 跑在 8088 端口上
+}
+```
+
+最后在 `main.go` 将其跑起来
+
+`main.go`
+
+```go
+package main
+
+import "gin-demo/api"
+
+func main() {
+	api.InitRouter()
+}
+```
+
+现在的结构是这样的
+
+```
+├── README.md
+├── api
+│   ├── router.go
+│   └── user.go
+├── dao
+│   └── user.go
+├── go.mod
+├── go.sum
+├── main.go
+├── model
+│   └── user.go
+└── utils
+```
+
+##### 测试
+
+我们将 `main.go` 运行起来，在你的 Postman（或其他） 中通过 form 传入用户名与密码
+
+![](https://picture.lanlance.cn/i/2022/10/31/635f278680855.png)
+
+![](https://picture.lanlance.cn/i/2022/10/31/635f27b5a8ca3.png)
+
+其余逻辑可以尝试自行测试
+
+#### 优化我们的 Web 服务
+
+到现在我们的 Web 服务虽说能跑，但是其实还处于一个很简陋的状态， Gin 框架也提供了很多中间件以及拓展功能供我们使用。
+
+##### 表单验证
+
+大家有没有想过，我不传用户名，只传密码时，服务器也会有响应，这在实际生产中是非常浪费资源的。所以我们可以通过表单验证来进行绑定。
+
+如果一个字段的 tag 加上了 `binding:"required"`，但绑定时是空值, Gin 会报错。
+
+`model/main.go`
+
+```go
+package model
+
+type User struct {
+	Username string `form:"username" json:"username" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
+}
+```
+
+`api/main.go`
+
+```go
+package api
+
+import (
+	"fmt"
+	"gin-demo/dao"
+	"gin-demo/model"
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
+func register(c *gin.Context) {
+	if err := c.ShouldBind(&model.User{}); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  500,
+			"message": "verification failed",
+		})
+		return
+	}
+	// 传入用户名和密码
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// 验证用户名是否重复
+	flag := dao.SelectUser(username)
+	fmt.Println(flag)
+	if flag {
+		// 以 JSON 格式返回信息
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "user already exists",
+		})
+		return
+	}
+
+	dao.AddUser(username, password)
+	// 以 JSON 格式返回信息
+	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": "add user successful",
+	})
+}
+
+func login(c *gin.Context) {
+	if err := c.ShouldBind(&model.User{}); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  500,
+			"message": "verification failed",
+		})
+		return
+	}
+	// 传入用户名和密码
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// 验证用户名是否存在
+	flag := dao.SelectUser(username)
+	// 不存在则退出
+	if !flag {
+		// 以 JSON 格式返回信息
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "user doesn't exists",
+		})
+		return
+	}
+
+	// 查找正确的密码
+	selectPassword := dao.SelectPasswordFromUsername(username)
+	// 若不正确则传出错误
+	if selectPassword != password {
+		// 以 JSON 格式返回信息
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "wrong password",
+		})
+		return
+	}
+
+	// 正确则登录成功
+	c.SetCookie("gin_demo_cookie", "test", 3600, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": "login successful",
+	})
+}
+```
+
+此时不传值会是下面的效果
+
+![](https://picture.lanlance.cn/i/2022/10/31/635f2b092f7a6.png)
+
+关于更多这一块的内容参考 https://gin-gonic.com/zh-cn/docs/examples/binding-and-validation/
+
+##### CORS
+
+在前后端开发中，跨域问题是非常恼人的，通过 CORS 中间件可以有效避免此类问题。
+
+###### CORS跨域问题
+
+> `CORS` 全称 `Cross-Origin Resource Sharing`，即跨域资源共享。
+
+CORS 是一种基于 [HTTP Header](https://link.juejin.cn?target=https%3A%2F%2Fdeveloper.mozilla.org%2Fen-US%2Fdocs%2FGlossary%2FHeader) 的机制，该机制通过允许服务器标示除了它自己以外的其它域。服务器端配合浏览器实现 `CORS` 机制，可以突破浏览器对跨域资源访问的限制，实现跨域资源请求。
+
+跨域不一定会有跨域问题。
+
+因为跨域问题是浏览器对于ajax请求的一种安全限制：**一个页面发起的ajax请求，只能是于当前页同域名的路径**，这能有效的阻止跨站攻击。
+
+###### 使用中间件解决
+
+在 api 中新建一个 middware 文件夹，并在下面新建 `cors.go`
+
+`api/middleware/cors.go`
+
+```go
+package middleware
+
+import "github.com/gin-gonic/gin"
+
+func CORS() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		ctx.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, token, x-access-token")
+		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.AbortWithStatus(204)
+			return
+		}
+		ctx.Next()
+	}
+}
+```
+
+接下来在 `api/router.go` 中使用此中间件。
+
+```go
+package api
+
+import (
+	"gin-demo/api/middleware"
+	"github.com/gin-gonic/gin"
+)
+
+func InitRouter() {
+	r := gin.Default()
+	r.Use(middleware.CORS())
+
+	r.POST("/register", register) // 注册
+	r.POST("/login", login)       // 登录
+
+	r.Run(":8088") // 跑在 8088 端口上
+}
+```
+
+CORS 中间件建议每次都加上。
+
+##### utils
+
+还记得我们之前新建了一个 utils 文件夹还未使用，大家有没有发现每次我们传回响应时都会打一串很类似的代码，像这种多次复用的就可以封装到 utils 中。
+
+`utils/response.go`
+
+```go
+package utils
+
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
+func RespSuccess(c *gin.Context, message string) {
+	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": message,
+	})
+}
+
+func RespFail(c *gin.Context, message string) {
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"status":  500,
+		"message": message,
+	})
+}
+```
+
+`api/user.go`
+
+```go
+package api
+
+import (
+	"fmt"
+	"gin-demo/dao"
+	"gin-demo/model"
+	"gin-demo/utils"
+	"github.com/gin-gonic/gin"
+)
+
+func register(c *gin.Context) {
+	if err := c.ShouldBind(&model.User{}); err != nil {
+		utils.RespSuccess(c, "verification failed")
+		return
+	}
+	// 传入用户名和密码
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// 验证用户名是否重复
+	flag := dao.SelectUser(username)
+	fmt.Println(flag)
+	if flag {
+		// 以 JSON 格式返回信息
+		utils.RespFail(c, "user already exists")
+		return
+	}
+
+	dao.AddUser(username, password)
+	// 以 JSON 格式返回信息
+	utils.RespSuccess(c, "add user successful")
+}
+
+func login(c *gin.Context) {
+	if err := c.ShouldBind(&model.User{}); err != nil {
+		utils.RespFail(c, "verification failed")
+		return
+	}
+	// 传入用户名和密码
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// 验证用户名是否存在
+	flag := dao.SelectUser(username)
+	// 不存在则退出
+	if !flag {
+		// 以 JSON 格式返回信息
+		utils.RespFail(c, "user doesn't exists")
+		return
+	}
+
+	// 查找正确的密码
+	selectPassword := dao.SelectPasswordFromUsername(username)
+	// 若不正确则传出错误
+	if selectPassword != password {
+		// 以 JSON 格式返回信息
+		utils.RespFail(c, "wrong password")
+		return
+	}
+
+	// 正确则登录成功
+	c.SetCookie("gin_demo_cookie", "test", 3600, "/", "localhost", false, true)
+	utils.RespSuccess(c, "login successful")
+}
+```
+
+这样有没有感觉清晰很多。
+
+##### JWT
+
+在实际生产中，我们一般还是使用 JWT 偏多， cookie 的使用很少。
+
+关于 JWT 的使用参考 https://www.liwenzhou.com/posts/Go/jwt_in_gin/
+
+> 这个很重要，我觉得李文周老师肯定比我讲的好，索性直接贴李文周老师的博客了
+
+这里就直接给出最后的代码了。
+
+`api/user.go`
+
+```go
+// 仅有登录部分有改动
+func login(c *gin.Context) {
+	if err := c.ShouldBind(&model.User{}); err != nil {
+		utils.RespFail(c, "verification failed")
+		return
+	}
+	// 传入用户名和密码
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// 验证用户名是否存在
+	flag := dao.SelectUser(username)
+	// 不存在则退出
+	if !flag {
+		// 以 JSON 格式返回信息
+		utils.RespFail(c, "user doesn't exists")
+		return
+	}
+
+	// 查找正确的密码
+	selectPassword := dao.SelectPasswordFromUsername(username)
+	// 若不正确则传出错误
+	if selectPassword != password {
+		// 以 JSON 格式返回信息
+		utils.RespFail(c, "wrong password")
+		return
+	}
+
+	// 正确则登录成功
+	// 创建一个我们自己的声明
+	claim := model.MyClaims{
+		Username: username, // 自定义字段
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 2).Unix(), // 过期时间
+			Issuer:    "Yxh",                                // 签发人
+		},
+	}
+	// 使用指定的签名方法创建签名对象
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
+	// 使用指定的secret签名并获得完整的编码后的字符串token
+	tokenString, _ := token.SignedString(middleware.Secret)
+	utils.RespSuccess(c, tokenString)
+}
+```
+
+`api/middleware/jwt.go`
+
+```go
+package middleware
+
+import (
+	"errors"
+	"net/http"
+	"strings"
+
+	"gin-demo/model"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+)
+
+var Secret = []byte("YXH")
+
+// JWTAuthMiddleware 基于JWT的认证中间件
+func JWTAuthMiddleware() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		// 客户端携带Token有三种方式 1.放在请求头 2.放在请求体 3.放在URI
+		// 这里假设Token放在Header的Authorization中，并使用Bearer开头
+		// 这里的具体实现方式要依据你的实际业务情况决定
+		authHeader := c.Request.Header.Get("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 2003,
+				"msg":  "请求头中auth为空",
+			})
+			c.Abort()
+			return
+		}
+		// 按空格分割
+		parts := strings.SplitN(authHeader, " ", 2)
+		if !(len(parts) == 2 && parts[0] == "Bearer") {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 2004,
+				"msg":  "请求头中auth格式有误",
+			})
+			c.Abort()
+			return
+		}
+		// parts[1]是获取到的tokenString，我们使用之前定义好的解析JWT的函数来解析它
+		mc, err := ParseToken(parts[1])
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 2005,
+				"msg":  "无效的Token",
+			})
+			c.Abort()
+			return
+		}
+		// 将当前请求的username信息保存到请求的上下文c上
+		c.Set("username", mc.Username)
+		c.Next() // 后续的处理函数可以用过c.Get("username")来获取当前请求的用户信息
+	}
+}
+
+// ParseToken 解析JWT
+func ParseToken(tokenString string) (*model.MyClaims, error) {
+	// 解析token
+	token, err := jwt.ParseWithClaims(tokenString, &model.MyClaims{}, func(token *jwt.Token) (i interface{}, err error) {
+		return Secret, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*model.MyClaims); ok && token.Valid { // 校验token
+		return claims, nil
+	}
+	return nil, errors.New("invalid token")
+}
+```
+
+为了测试，我们在 api 中再实现一个接口，这个接口可以通过 token 直接获得我们 token 中所设置的 "username"。
+
+`api/user.go`
+
+```go
+// 新增以下代码
+func getUsernameFromToken(c *gin.Context) {
+	username, _ := c.Get("username")
+	utils.RespSuccess(c, username.(string))
+}
+```
+
+再在 `router.go` 中使用我们的 JWT 中间件。在这里我们使用到了分组路由，逻辑很简单，看代码就懂了。
+
+```go
+package api
+
+import (
+	"gin-demo/api/middleware"
+	"github.com/gin-gonic/gin"
+)
+
+func InitRouter() {
+	r := gin.Default()
+	r.Use(middleware.CORS())
+
+	r.POST("/register", register) // 注册
+	r.POST("/login", login)       // 登录
+
+	UserRouter := r.Group("/user")
+	{
+		UserRouter.Use(middleware.JWTAuthMiddleware())
+		UserRouter.GET("/get", getUsernameFromToken)
+	}
+
+	r.Run(":8088") // 跑在 8088 端口上
+}
+```
+
+###### 测试
+
+1. 登录
+
+![image-20221031105046556](https://picture.lanlance.cn/i/2022/10/31/635f38073a221.png)
+
+2. 获得 Username
+
+我们先试试不用 token
+
+![image-20221031105125971](https://picture.lanlance.cn/i/2022/10/31/635f382e48dff.png)
+
+在 Header 中添加 token，KEY 为 Authorization，token 前面需要添加 Bearer。
+
+![image-20221031105216859](https://picture.lanlance.cn/i/2022/10/31/635f38612b036.png)
+
+## 作业
+
+### Lv0 
+
+重新敲一遍今天的代码。了解 [RESTful API](https://zhuanlan.zhihu.com/p/334809573)，了解不同请求方法的区别，了解 Query 与 PostFrom 的[区别](https://gin-gonic.com/zh-cn/docs/examples/query-and-post-form/)。
+
+### Lv1
+
+使这个项目的“数据库”数据持久化，可以考虑使用文件操作完成。（禁止使用数据库）
+
+### Lv2
+
+给这个项目添加修改密码、找回密码的功能，找回密码的逻辑有很多种，能实现一种就行。
+
+### Lv3 
+
+给这个项目添加留言板功能，数据通过文件保存在本地即可。
+
+### LvX
+
+发挥你天马行空的想象力，实现你力所能及的任何功能。
+
+### LvXX
+
+将你的项目部署起来，使我们能够访问。（第一个实现的找我，我请你喝奶茶😘）
+
+## 作业提交事项
+
+作业完成后把 GitHub 地址提交到 **HappyOJ APP** 上，如果是苹果手机或无法使用则将地址发送至 yuanxinhao@gocybee.team
+
+提交格式：第四次作业-2011111188-小袁-LvX
+
+**截止时间**：下一次上课之前
+
+## 写在最后
+
+因为是第一次真正接触 Web 开发，所以很多地方不能完全讲到，许多中间件还需同学们下去理解掌握。不过这次课的内容也算是很充实了，能够完全掌握的话我相信在后面的开发中应该是没有什么大问题了。希望大家都学到这里了还是能够坚持下来！
+
+[Gin官方中文文档](https://gin-gonic.com/zh-cn/docs/)，文档里面基本包含全了大部分功能，可以照着文档进行学习。
