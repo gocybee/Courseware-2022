@@ -817,6 +817,12 @@ func login(c *gin.Context) {
 
 > 这个很重要，我觉得李文周老师肯定比我讲的好，索性直接贴李文周老师的博客了
 
+首先把我们需要的第三方库给拉下来
+
+```go
+go get github.com/dgrijalva/jwt-go
+```
+
 这里就直接给出最后的代码了。
 
 `api/user.go`
