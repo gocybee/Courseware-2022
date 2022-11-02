@@ -661,7 +661,7 @@ CORS 是一种基于 [HTTP Header](https://link.juejin.cn?target=https%3A%2F%2Fd
 
 ###### 使用中间件解决
 
-在 api 中新建一个 middware 文件夹，并在下面新建 `cors.go`
+在 api 中新建一个 middleware 文件夹，并在下面新建 `cors.go`
 
 `api/middleware/cors.go`
 
