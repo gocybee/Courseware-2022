@@ -461,7 +461,7 @@ func login(c *gin.Context) {
 
 	// 正确则登录成功 设置 cookie
 	c.SetCookie("gin_demo_cookie", "test", 3600, "/", "localhost", false, true)
-  c.JSON(http.StatusOK, gin.H{
+    c.JSON(http.StatusOK, gin.H{
 		"status":  200,
 		"message": "login successful",
 	})
