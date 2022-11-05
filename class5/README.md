@@ -1032,7 +1032,7 @@ func InitRouter() {
 
 作业完成后把 GitHub 地址提交到 **HappyOJ APP** 上，如果是苹果手机或无法使用则将地址发送至 yuanxinhao@gocybee.team
 
-提交格式：第四次作业-2011111188-小袁-LvX
+提交格式：第五次作业-2011111188-小袁-LvX
 
 **截止时间**：下一次上课之前
 
