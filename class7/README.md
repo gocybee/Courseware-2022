@@ -1522,6 +1522,8 @@ func Set() {
 
 结合gin redis 写一个点赞功能的接口（只能点赞一次）
 
+### Lv3
+在lv1的基础上 用合理的缓存策略 并保证数据一致性
 
 作业格式 Lv2-姓名-学号 <br>
 发送到gocybee@gocybee.team 也可以发送到 limingjie@gocybee.team
