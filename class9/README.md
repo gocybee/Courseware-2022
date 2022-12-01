@@ -135,6 +135,24 @@ go build main.go
 scp main root@127.0.0.1:/home/
 ```
 
+如果想要免密登录
+配置SSH即可 
+
+1.在主机A创建密钥对
+
+```shell
+ssh-keygen #创建证书
+```
+
+然后均回车（选择默认）
+
+
+
+2、将文件上传至免登录主机B的authorized_keys
+
+```shell
+/root/.ssh/authorized_keys
+```
 
 
 ####  上传源代码到服务器
