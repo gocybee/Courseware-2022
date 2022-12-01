@@ -226,6 +226,8 @@ nohup ./main &
 
 ### 作业
 
+发送到gocybee@gocybee.team
+
 #### lv1
 
 部署课件中样例到服务器，浏览器访问页面并截图
