@@ -7,6 +7,6 @@ import (
 
 func main() {
 	r := gin.Default()
-	r.Use(static.Serve("/", static.LocalFile("/geekbee", false)))
+	r.Use(static.Serve("/", static.LocalFile("./geekbee", false)))
 	r.Run(":8077")
 }
