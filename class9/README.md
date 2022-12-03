@@ -155,6 +155,7 @@ ssh-keygen #创建证书
 ```
 
 
+
 ####  上传源代码到服务器
 
 通常会先将源码上传到github再拉下来，或者使用goland一键上传
@@ -225,8 +226,6 @@ nohup ./main &
 
 
 ### 作业
-
-发送到gocybee@gocybee.team
 
 #### lv1
 
