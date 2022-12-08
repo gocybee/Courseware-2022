@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+func init() {
+	go main()
+}
+
 func main() {
 	go learnFrontend()
 	go learnAndroid()
@@ -13,7 +17,7 @@ func main() {
 }
 
 func learnBackend() {
-	time.Sleep(10 * time.Minute) // 十分钟速通 web 后端（确信
+	time.Sleep(3 * time.Second) // 十分钟速通 web 后端（确信
 	fmt.Println("会了！")
 }
 

@@ -35,7 +35,7 @@ func main() {
 		}
 	}
 	fmt.Printf("停止前 Goroutine 数量：%d\n", runtime.NumGoroutine())
-	cancel()
+	cancel()                    // 停止
 	time.Sleep(time.Second * 2) // 等待手下停止打炮
 	fmt.Println("打炮结束.")
 	// 会打印出 2 个，一个是 main goroutine，另一个是 keyboard 监听事件的 goroutine
